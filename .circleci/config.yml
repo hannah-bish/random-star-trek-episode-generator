@@ -1,0 +1,146 @@
+# The following environment variables are set at the org level and are available for use.
+# DOCKER_HUB_USERNAME
+# DOCKER_HUB_PASSWORD
+# SLACK_ACCESS_TOKEN
+
+# TODO: Make sure CircleCI Dashboard project configuration has appropriate environment variables set.
+
+# TODO: Set the desired docker image name here!
+docker-image-and-tag: &docker-image-and-tag
+  image: dfmedia/sample-docker-image
+  tag: $CIRCLE_SHA1,$CIRCLE_TAG
+
+# TODO: Set the desired Slack notification channel here!
+slack-channel: &slack-channel
+  channel: '#pd-adtech-releases'
+
+slack-fail-message: &slack-fail-message
+  custom: |
+    {
+      "blocks": [
+         {
+            "type": "section",
+            "text": {
+              "type": "mrkdwn",
+              "text": ":x: Job failed!\n*Circle Job*: $CIRCLE_JOB\n*Project*: $CIRCLE_PROJECT_REPONAME\n*Branch*: $CIRCLE_BRANCH\n*SHA*: $CIRCLE_SHA1\n*Tag*: $CIRCLE_TAG\n*Committer*: $CIRCLE_USERNAME\n*When*: $(date +'%m/%d/%Y %T')\n*<$CIRCLE_BUILD_URL|View Job>*"
+            }
+         }
+      ]
+    }
+
+slack-tests-pass-message: &slack-tests-pass-message
+  custom: |
+    {
+      "blocks": [
+        {
+          "type": "section",
+          "text": {
+            "type": "mrkdwn",
+            "text": ":white_check_mark: Tests passed!\n*Circle Job*: $CIRCLE_JOB\n*Project*: $CIRCLE_PROJECT_REPONAME\n*Branch*: $CIRCLE_BRANCH\n*SHA*: $CIRCLE_SHA1\n*Tag*: $CIRCLE_TAG\n*Committer*: $CIRCLE_USERNAME\n*When*: $(date +'%m/%d/%Y %T')\n*<$CIRCLE_BUILD_URL|View Job>*"
+          }
+        }
+      ]
+    }
+
+slack-docker-publish-message: &slack-docker-publish-message
+  custom: |
+    {
+      "blocks": [
+        {
+          "type": "section",
+          "text": {
+            "type": "mrkdwn",
+            "text": ":docker: Docker image published!\n*Circle Job*: $CIRCLE_JOB\n*Project*: $CIRCLE_PROJECT_REPONAME\n*Branch*: $CIRCLE_BRANCH\n*SHA*: $CIRCLE_SHA1\n*Tag*: $CIRCLE_TAG\n*Committer*: $CIRCLE_USERNAME\n*When*: $(date +'%m/%d/%Y %T')\n*<$CIRCLE_BUILD_URL|View Job>*"
+          }
+        }
+      ]
+    }
+
+version: 2.1
+
+orbs:
+  docker: circleci/docker@1.5.0
+  slack: circleci/slack@4.1.1
+
+jobs:
+  test:
+    # CircleCI VM image list: https://circleci.com/docs/2.0/configuration-reference/#available-machine-images
+    # For faster startup, a Docker executor can be used. However, bind-mounts will not work when running
+    # other Docker containers from within a Docker container without workarounds. This is Docker behavior, not the CI tool.
+    machine:
+      image: ubuntu-2004:202010-01
+
+    steps:
+      - checkout
+
+      - run: ./lint-shell-scripts.sh
+
+      - run: ./lint-dockerfile.sh
+
+      # TODO: Run unit/integration tests here.
+
+      - slack/notify:
+          event: fail
+          <<: *slack-channel
+          <<: *slack-fail-message
+
+      - slack/notify:
+          event: pass
+          <<: *slack-channel
+          <<: *slack-tests-pass-message
+
+  publish-docker-image:
+    executor: docker/docker
+    steps:
+      - setup_remote_docker
+
+      - checkout
+
+      - docker/check:
+          docker-username: DOCKER_HUB_USERNAME
+          docker-password: DOCKER_HUB_PASSWORD
+
+      # TODO: Apply additional Docker build options here.
+      # https://circleci.com/developer/orbs/orb/circleci/docker#commands-build
+      - docker/build:
+          <<: *docker-image-and-tag
+
+      - docker/push:
+          <<: *docker-image-and-tag
+
+      - slack/notify:
+          event: fail
+          <<: *slack-channel
+          <<: *slack-fail-message
+
+      - slack/notify:
+          event: pass
+          <<: *slack-channel
+          <<: *slack-docker-publish-message
+
+
+workflows:
+  version: 2
+
+  ci-cd:
+    jobs:
+      - test:
+          context:
+            - slack-creds
+          filters:
+            tags:
+              only: /.*/
+      - publish-docker-image:
+          requires:
+            - test
+          context:
+            - slack-creds
+            - docker-creds
+          filters:
+            branches:
+              only:
+                - master
+            # TODO: Set your tagging scheme here!
+            # Filter options: https://circleci.com/docs/2.0/configuration-reference/#tags    
+            tags:
+              only: /^v.*/

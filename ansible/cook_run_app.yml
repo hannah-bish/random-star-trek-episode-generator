@@ -1,0 +1,6 @@
+#!/usr/bin/env ansible-playbook
+---
+- hosts: local
+  gather_facts: no
+  roles:
+    - role: cook_run_app

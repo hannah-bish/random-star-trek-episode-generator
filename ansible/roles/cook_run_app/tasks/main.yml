@@ -1,0 +1,12 @@
+---
+- import_tasks: roles/common/tasks/cook_docker_compose_artifacts.yml
+  #vars:
+  # Optional: Templates outside of the role that need to be included in the artifacts
+  #    extra_templates:
+  #      - this.file
+  #      - that.file
+  # Optional: Files outside of the role that need to be included in the artifacts
+  #    extra_files:
+  #      - this.file
+  #      - that.file
+

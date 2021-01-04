@@ -1,0 +1,10 @@
+---
+# your non-sensitive configuration values
+host_app_port: '8080'
+host_mysql_port: '3306'
+
+# sensitive configuration values
+# Ansible Vault naming convention:
+# https://docs.ansible.com/ansible/latest/user_guide/playbooks_best_practices.html#keep-vaulted-variables-safely-visible
+# 'vault_some_var' should be encrypted inside of vault.yml
+# some_var: "{{ vault_some_var }}"

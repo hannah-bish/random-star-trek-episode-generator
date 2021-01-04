@@ -1,0 +1,12 @@
+# Mac files
+.DS_Store
+
+# JetBrains IDE files (e.g. IntelliJ, PyCharm, etc)
+.idea
+
+# Generated docker compose artifacts
+.docker-compose-artifacts
+
+# Ansible
+.vault_pass
+my_vars.yml

@@ -1,0 +1,51 @@
+---
+- set_fact:
+    repo_dir: "{{ playbook_dir }}/.."
+
+- set_fact:
+    artifact_dir: "{{ playbook_dir }}/../.docker-compose-artifacts/{{ role_path | basename }}"
+
+- name: create cooked docker role directory
+  file:
+    state: directory
+    recurse: yes
+    path: "{{ artifact_dir }}"
+
+- name: delete existing files and dirs in cooked docker role directory
+  shell: rm -rf {{ artifact_dir }}/.[!.]* {{ artifact_dir }}/*
+  args:
+    warn: false
+
+- name: copy files from docker role and decrypt when necessary
+  copy:
+    src: "{{ item.src }}"
+    dest: "{{ artifact_dir }}/{{ item.src | basename | regex_replace('_vault$', '') }}"
+    mode: '0644'
+    decrypt: yes
+  with_filetree: "{{ role_path }}/files/"
+  when: item.state == 'file'
+
+- name: copy extra files and decrypt when necessary
+  copy:
+    src: "{{ item }}"
+    dest: "{{ artifact_dir }}/{{ item | basename | regex_replace('_vault$', '') }}"
+    mode: '0644'
+    decrypt: yes
+  with_items: "{{ extra_files }}"
+  when: extra_files is defined
+
+- name: generate files from docker role's templates
+  template:
+    src: "{{ item.src }}"
+    dest: "{{ artifact_dir }}/{{ item.src | basename | regex_replace('.j2$', '') }}"
+    mode: '0644'
+  with_filetree: "{{ role_path }}/templates/"
+  when: item.state == 'file'
+
+- name: generate files from extra templates
+  template:
+    src: "{{ item }}"
+    dest: "{{ artifact_dir }}/{{ item | basename | regex_replace('.j2$', '') }}"
+    mode: '0644'
+  with_items: "{{ extra_templates }}"
+  when: extra_templates is defined
