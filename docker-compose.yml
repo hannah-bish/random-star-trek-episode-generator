@@ -1,8 +1,7 @@
-version: '1.0'
+version: '3.8'
 services:
 
   atlas:
     image: 'dfmedia/random-star-trek-episode-generator:latest'
     ports:
       - '8000:8000'
-

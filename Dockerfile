@@ -1,3 +1,15 @@
-FROM wordpress:5.5.1 as app
+FROM node:14.2.0
 
-RUN echo 'I WUZ HERE!!!!!!!!!!!!!' >> /usr/src/wordpress/wp-admin/install.php
+WORKDIR /myapp
+
+COPY package.json .
+
+RUN npm install -g gatsby-cli
+
+RUN npm install
+
+COPY gatsby-config.js .
+
+EXPOSE 8000
+
+CMD ["gatsby", "develop", "-H", "0.0.0.0"]

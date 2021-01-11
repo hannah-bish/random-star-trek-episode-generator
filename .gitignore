@@ -7,6 +7,7 @@
 # Generated docker compose artifacts
 .docker-compose-artifacts
 
-# Ansible
-.vault_pass
-my_vars.yml
+node_modules/
+.cache/
+public
+

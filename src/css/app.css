@@ -1,0 +1,27 @@
+@import "../css/typography.css";
+
+.app-wrapper {
+  max-width: 800px;
+  margin: auto;
+}
+
+.app {
+  padding: 50px;
+  background-color: hsla(0, 0%, 0%, 0.94);
+  margin-top: 200px;
+  border-radius: 25px;
+  text-align: center;
+}
+
+.generate-button {
+  font-family: "Star Trek", georgia, serif;
+  border-radius: 25px;
+  font: 200%/1.0em "Star Trek", georgia, serif, sans-serif;
+  cursor: pointer;
+  padding: 15px
+}
+
+.episode {
+  margin-top: 50px;
+  border-radius: 25px;
+}
