@@ -1,14 +1,13 @@
-FROM node:14.2.0
+FROM node:14.2.0 as app
 
-WORKDIR /myapp
-
-COPY package.json .
+WORKDIR /app
+COPY package*.json ./
 
 RUN npm install -g gatsby-cli
 
 RUN npm install
 
-COPY gatsby-config.js .
+COPY . .
 
 EXPOSE 8000
 
